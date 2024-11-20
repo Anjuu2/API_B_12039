@@ -20,8 +20,8 @@ class EventController extends Controller
         $validator = $request->validate([
             'nama_event' => 'required',
             'deskripsi' => 'required',
-            'tanggal_mulai' => 'required',
-            'tanggal_selesai' => 'required',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
             'lokasi' => 'required',
         ]);
 
@@ -47,8 +47,8 @@ class EventController extends Controller
         $validator = $request->validate([
             'nama_event' => 'required',
             'deskripsi' => 'required',
-            'tanggal_mulai' => 'required',
-            'tanggal_selesai' => 'required',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
             'lokasi' => 'required',
         ]);
 
@@ -76,5 +76,20 @@ class EventController extends Controller
         $event->delete();
 
         return response()->json(['message' => 'Event berhasil dihapus.']);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $events = Event::where('nama_event', 'LIKE', '%' . $query . '%')
+            ->orWhere('lokasi', 'LIKE', '%' . $query . '%')
+            ->get();
+
+        if ($events->isEmpty()) {
+            return response()->json(['message' => 'Event tidak ditemukan.'], 404);
+        }
+
+        return response()->json($events, 200);
     }
 }

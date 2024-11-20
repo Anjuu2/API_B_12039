@@ -59,4 +59,63 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Not logged in'], 401);
     }
+
+    public function read()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Not logged in'], 401);
+        }
+
+        return response()->json($user, 200);
+    }
+
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Not logged in'], 401);
+        }
+
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users' . $user->id,
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        if ($request->filled('name')) {
+            $user->name = $request->name;
+        }
+
+        if ($request->filled('email')) {
+            $user->email = $request->email;
+        }
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user,
+        ], 200);
+    }
+
+    public function destroy()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Not logged in'], 401);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully'], 200);
+    }
 }
